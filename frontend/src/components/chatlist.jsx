@@ -13,8 +13,7 @@ import {
 function ChatList() {
   return (
     <div
-      // On small screens: width is 16 (64px), on medium and above: 15% of the viewport width
-      className="h-[90vh] flex flex-col items-center  text-white  w-16 text-center lg:w-[21%]"
+      className="h-[90vh] flex flex-col items-center  text-white  w-14 text-center lg:w-[20%] xl:w-[17%]"
       style={{ backgroundColor: "#04021b" }}
     >
       {/* Top Section */}
