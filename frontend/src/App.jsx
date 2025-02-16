@@ -15,7 +15,7 @@ import Chat from "../pages/chat/chat";
 
 import Layout from "./components/common/layouts/Home/navFoot";
 import { useAuth } from "@clerk/clerk-react";
-
+import "./app.css"
 function App() {
   const { userId, isLoaded } = useAuth();
   const navigate = useNavigate();
