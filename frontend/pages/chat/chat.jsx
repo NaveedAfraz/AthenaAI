@@ -26,7 +26,7 @@ function Chat() {
             <div key={index} className="flex flex-col space-y-2">
               {" "}
               <div className="flex items-center space-x-2 justify-end">
-                {" "}
+                {" "} 
                 {img?.aiData && (
                   <IKImage
                     urlEndpoint={import.meta.env.VITE_IMAGE_URL_ENDPOINT}
