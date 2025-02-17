@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 3006;
+const db = require("./db");
 app.use(express.json());
 dotenv.config();
 
@@ -14,9 +15,6 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.get("/", (req, res) => {
-  res.send("hello world");
-});
 
 const imgUploadRouter = require("./routes/imgupload");
 const chatRouter = require("./routes/chat");
