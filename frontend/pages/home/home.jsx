@@ -83,7 +83,7 @@ const Homepage = () => {
               icon: <Lock className="h-12 w-12 text-blue-400 mb-4" />,
               title: "Secure & Private",
               description:
-                "Your conversations are encrypted and your privacy is our priority.",
+                "Your Conversations are encrypted and your privacy is our priority.",
             },
           ].map((feature, index) => (
             <Card
@@ -109,7 +109,7 @@ const Homepage = () => {
             <Zap className="h-16 w-16 text-yellow-400 mx-auto mb-6 animate-bounce" />
             <h2 className="text-3xl font-bold mb-4">Try It Now</h2>
             <p className="text-gray-300 mb-8">
-              Experience the power of AI-driven conversations. Ask anything and
+              Experience the power of AI-driven Conversations. Ask anything and
               get intelligent, helpful responses in real-time.
             </p>
             <div className="bg-gray-700 rounded-lg p-4 text-left">

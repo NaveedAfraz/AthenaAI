@@ -73,7 +73,7 @@ function Input({
   console.log(img);
 
   return (
-    <div className="sticky bottom-0 bg-[#0A1529] w-full p-4">
+    <div className="sticky bottom-0 mx-auto bg-[#0A1529] w-[70%] p-4">
       <form className="w-full mx-auto" onSubmit={sendMessage}>
         {img?.dbData && (
           <IKImage

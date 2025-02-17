@@ -1,64 +1,132 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router";
 import { Separator } from "@/components/ui/separator";
 // Example icons from lucide-react:
 import {
-  LayoutDashboard,
   PlusCircle,
   Search,
   Mail,
   History,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { useAuth } from "@clerk/clerk-react";
+import { SidebarContent } from "./ui/sidebar";
 
-function ChatList() {
+function ChatList({ isOpen, setIsOpen }) {
+  const { userId } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { mutate } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await axios.post(
+          "http://localhost:3006/api/add-chat",
+          { userId },
+          { withCredentials: true }
+        );
+        return res.data;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
+      }
+    },
+    onSuccess: (data) => {
+      console.log("success", data);
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
+
+  const {
+    data: chatlistData,
+    isLoading: chatlistLoading,
+    isError: chatlistError,
+  } = useQuery({
+    queryKey: ["chatlist"],
+    queryFn: async () => {
+      const res = await axios.get(
+        `http://localhost:3006/api/get-chatList/${userId}`,
+        { withCredentials: true }
+      );
+      return res.data;
+    },
+  });
+
+  const handleNewChat = () => {
+    mutate();
+  };
+
+  const toggleSidebar = () => {
+    setIsOpen((prev) => !prev);
+  };
+
   return (
-    <div
-      className="h-[90vh] flex flex-col items-center  text-white  w-14 text-center lg:w-[20%] xl:w-[17%]"
+    <SidebarContent
+      className={`h-[100vh] flex flex-col items-center text-white text-center transition-all duration-300 ${
+        isOpen ? "w-[20%] xl:w-[17%]" : "w-14"
+      }`}
       style={{ backgroundColor: "#04021b" }}
     >
-      {/* Top Section */}
-      <div className="flex flex-col gap-2 p-5 pt-6">
-        {/* Dashboard heading with icon */}
-        {/* <div className="flex items-center gap-2">
-          <LayoutDashboard className="h-5 w-5" />
-         
-          <h3 className="hidden lg:inline text-xs font-bold text-white">
-            Dashboard
-          </h3>
-        </div> */}
+      {/* Toggle button */}
+      <div className="flex justify-end w-full p-2">
+        <button onClick={toggleSidebar} className="text-white">
+          {isOpen ? (
+            <ChevronLeft className="h-5 w-5" />
+          ) : (
+            <ChevronRight className="h-5 w-5" />
+          )}
+        </button>
+      </div>
 
-        {/* "Create a new Chat" link */}
+      {/* Navigation Links */}
+      <div className="flex flex-col gap-2 p-5 pt-6">
         <Link className="mx-1 flex items-center gap-2" to="">
           <PlusCircle className="h-5 w-5" />
-          <span className="hidden lg:inline">Create a new Chat</span>
+          {isOpen && (
+            <button onClick={handleNewChat} className="">
+              Create a new Chat
+            </button>
+          )}
         </Link>
 
-        {/* "Explore Athena AI" link */}
         <Link className="mx-1 flex items-center gap-2" to="">
           <Search className="h-5 w-5" />
-          <span className="hidden lg:inline">Explore Athena AI</span>
+          {isOpen && <span>Explore Athena AI</span>}
         </Link>
 
-        {/* "Contact" link */}
         <Link className="mx-1 flex items-center gap-2" to="">
           <Mail className="h-5 w-5" />
-          <span className="hidden lg:inline">Contact</span>
+          {isOpen && <span>Contact</span>}
         </Link>
       </div>
 
       <Separator className="bg-zinc-700 mx-auto h-[0.5px]" />
 
-      {/* Bottom Section */}
+      {/* Recent Chats */}
       <div className="flex flex-col gap-5 p-5">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-2">
           <History className="h-5 w-5" />
-          {/* Hidden on small screens, shown on md and above */}
-          <p className="text-sm hidden lg:inline">Recent Chats</p>
+          {isOpen && <p className="text-sm">Recent Chats</p>}
+          {chatlistLoading
+            ? "Loading..."
+            : chatlistData &&
+              chatlistData.data.map((chat) => (
+                <Link
+                  key={chat.ConversationsID}
+                  to={`chats/${chat.ConversationsID}`}
+                >
+                  {isOpen ? chat.Title : <PlusCircle className="h-5 w-5" />}
+                </Link>
+              ))}
         </div>
       </div>
 
       <Separator className="bg-zinc-700 mx-auto h-[0.5px]" />
-    </div>
+    </SidebarContent>
   );
 }
 

@@ -4,7 +4,7 @@ import React from "react";
 function Footer() {
   return (
     <>
-      <Separator className="h-[2px] bg-gray-800" />
+      <Separator className="h-[5px] bg-gray-800" />
       <footer
         style={{ backgroundColor: "#04021b" }}
         className="py-5 text-center w-[100%] text-gray-400  border-gray-800"
