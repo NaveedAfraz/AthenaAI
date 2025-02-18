@@ -6,6 +6,7 @@ import { BrowserRouter as Router } from "react-router";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "./components/ui/sidebar";
+import { ChatProvider } from "./GlobalContext";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const queryClient = new QueryClient();
@@ -16,9 +17,9 @@ createRoot(document.getElementById("root")).render(
   <Router>
     <QueryClientProvider client={queryClient}>
       <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/home">
-        
+        <ChatProvider>
           <App />
-      
+        </ChatProvider>
       </ClerkProvider>{" "}
     </QueryClientProvider>
   </Router>

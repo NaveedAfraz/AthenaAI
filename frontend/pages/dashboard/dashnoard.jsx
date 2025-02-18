@@ -8,7 +8,8 @@ import Chat from "../../pages/chat/chat";
 import { Send } from "lucide-react";
 import Input from "@/components/input";
 import { SidebarProvider } from "@/components/ui/sidebar";
-
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 function Dashboard() {
   const { userId, isLoaded } = useAuth();
   const navigate = useNavigate();
@@ -16,24 +17,52 @@ function Dashboard() {
   const [isChatOpen, setIsChatOpen] = useState(
     location.pathname.includes("/chats")
   );
-
   useEffect(() => {
     if (!userId && isLoaded) {
       navigate("/register");
     }
   }, [userId, isLoaded, navigate]);
+
   useEffect(() => {
     if (location.pathname.includes("/chats")) {
       console.log("chat");
       setIsChatOpen(true);
     }
   }, [location, setIsChatOpen]);
+  const { mutate: StartChatMutation } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await axios.post(
+          "http://localhost:3006/api/add-chat",
+          { userId },
+          { withCredentials: true }
+        );
+
+        return res.data;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
+      }
+    },
+    onSuccess: (data) => {
+      console.log("success", data);
+      navigate(`chats/${data.conversationId}`);
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
+  const handleStartConversation = () => {
+    StartChatMutation();
+  };
   const [isOpen, setIsOpen] = useState(true);
   return (
     <>
       <div className="flex w-full h-[91.7vh] overflow-hidden">
         <SidebarProvider
-          className={`transition-all duration-300 ${isOpen ? "w-64" : "w-18"} overflow-hidden`}
+          className={`transition-all duration-300 ${
+            isOpen ? "w-64" : "w-18"
+          } overflow-hidden`}
         >
           <ChatList isOpen={isOpen} setIsOpen={setIsOpen} />
         </SidebarProvider>
@@ -70,8 +99,15 @@ function Dashboard() {
                     ))}
                   </div>
                 </div>
-              </div>{" "}
-              <Input />
+              </div>
+              <div className="flex justify-center items-center my-6">
+                <button
+                  className="px-6 py-3 w-2xl max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  onClick={handleStartConversation}
+                >
+                  <Link to="/chat">Let's Spark a Conversation</Link>
+                </button>
+              </div>
             </div>
           </>
         ) : (

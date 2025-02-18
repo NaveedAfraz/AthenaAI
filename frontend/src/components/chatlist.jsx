@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Separator } from "@/components/ui/separator";
 // Example icons from lucide-react:
 import {
@@ -18,7 +18,8 @@ import { SidebarContent } from "./ui/sidebar";
 function ChatList({ isOpen, setIsOpen }) {
   const { userId } = useAuth();
   const queryClient = useQueryClient();
-
+  const navigate = useNavigate();
+  const [chatID, setChatID] = useState("");
   const { mutate } = useMutation({
     mutationFn: async () => {
       try {
@@ -27,6 +28,7 @@ function ChatList({ isOpen, setIsOpen }) {
           { userId },
           { withCredentials: true }
         );
+
         return res.data;
       } catch (error) {
         console.log(error);
@@ -35,6 +37,8 @@ function ChatList({ isOpen, setIsOpen }) {
     },
     onSuccess: (data) => {
       console.log("success", data);
+      setChatID(data.conversationId);
+      navigate(`chats/${data.conversationId}`);
     },
     onError: (error) => {
       console.log(error);
@@ -52,6 +56,7 @@ function ChatList({ isOpen, setIsOpen }) {
         `http://localhost:3006/api/get-chatList/${userId}`,
         { withCredentials: true }
       );
+      console.log(res.data);
       return res.data;
     },
   });
@@ -63,6 +68,7 @@ function ChatList({ isOpen, setIsOpen }) {
   const toggleSidebar = () => {
     setIsOpen((prev) => !prev);
   };
+  console.log(chatlistData);
 
   return (
     <SidebarContent
@@ -71,9 +77,8 @@ function ChatList({ isOpen, setIsOpen }) {
       }`}
       style={{ backgroundColor: "#04021b" }}
     >
-      {/* Toggle button */}
-      <div className="flex justify-end w-full p-2">
-        <button onClick={toggleSidebar} className="text-white">
+      <div className="sticky top-0 px-5 justify-end w-full bg-[#04021b] py-3 flex border-b border-zinc-700">
+        <button onClick={toggleSidebar} className="text-white cursor-pointer ">
           {isOpen ? (
             <ChevronLeft className="h-5 w-5" />
           ) : (
@@ -84,14 +89,14 @@ function ChatList({ isOpen, setIsOpen }) {
 
       {/* Navigation Links */}
       <div className="flex flex-col gap-2 p-5 pt-6">
-        <Link className="mx-1 flex items-center gap-2" to="">
+        <div className="mx-1 flex items-center gap-2" to={`chats/${chatID}`}>
           <PlusCircle className="h-5 w-5" />
           {isOpen && (
             <button onClick={handleNewChat} className="">
               Create a new Chat
             </button>
           )}
-        </Link>
+        </div>
 
         <Link className="mx-1 flex items-center gap-2" to="">
           <Search className="h-5 w-5" />
@@ -107,21 +112,32 @@ function ChatList({ isOpen, setIsOpen }) {
       <Separator className="bg-zinc-700 mx-auto h-[0.5px]" />
 
       {/* Recent Chats */}
-      <div className="flex flex-col gap-5 p-5">
+      <div
+        className={`flex flex-col gap-5 p-5 my-15 w-full scroll-auto ${
+          isOpen ? "overflow-y-scroll" : "overflow-y-hidden"
+        }`}
+      >
         <div className="flex flex-col items-center gap-2">
-          <History className="h-5 w-5" />
-          {isOpen && <p className="text-sm">Recent Chats</p>}
-          {chatlistLoading
-            ? "Loading..."
-            : chatlistData &&
-              chatlistData.data.map((chat) => (
-                <Link
-                  key={chat.ConversationsID}
-                  to={`chats/${chat.ConversationsID}`}
-                >
-                  {isOpen ? chat.Title : <PlusCircle className="h-5 w-5" />}
-                </Link>
-              ))}
+          <div className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            {isOpen && <p className="text-sm font-semibold 500">Recent Chats</p>}
+          </div>
+
+          {chatlistLoading ? (
+            "Loading..."
+          ) : chatlistData !== undefined ? (
+            chatlistData.data.map((chat) => (
+              <Link
+                key={chat.ConversationsID}
+                to={`chats/${chat.ConversationsID}`}
+                className="flex items-center justify-center gap-2 h-10 bg-indigo-950 rounded-2xl p-2 w-full"
+              >
+                {isOpen ? chat.Title : <PlusCircle className="h-5 w-5" />}
+              </Link>
+            ))
+          ) : (
+            <p>No Recent Chats</p>
+          )}
         </div>
       </div>
 

@@ -6,6 +6,7 @@ const port = process.env.PORT || 3006;
 const db = require("./db");
 app.use(express.json());
 dotenv.config();
+const { requireAuth } = require("@clerk/express");
 
 app.use(
   cors({
