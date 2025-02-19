@@ -1,11 +1,13 @@
 const express = require("express");
-const dotenv = require("dotenv");
+
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 3006;
 const db = require("./db");
+const path = require("path");
 app.use(express.json());
-dotenv.config();
+require("dotenv").config();
+
 const { requireAuth } = require("@clerk/express");
 
 app.use(
