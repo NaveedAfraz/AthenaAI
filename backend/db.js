@@ -13,9 +13,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   port: process.env.DB_PORT || 22701,
 });
-console.log(process.env.DB_HOST);
 
-// Test the connection 
 async function testConnection() { 
   try {
     const connection = await pool.getConnection();
@@ -25,7 +23,6 @@ async function testConnection() {
     console.error("Error connecting to the database:", err);
   }
 }
- 
-testConnection();
 
+testConnection();
 module.exports = pool;

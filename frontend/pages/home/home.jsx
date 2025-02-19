@@ -8,6 +8,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { useNavigate } from "react-router";
+import Footer from "@/components/common/layouts/footer";
 
 const TypeWriter = ({ text, speed }) => {
   const [displayText, setDisplayText] = useState("");
@@ -124,6 +125,7 @@ const Homepage = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

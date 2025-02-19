@@ -24,6 +24,13 @@ const { config } = require("process");
 
 app.use("/api", imgUploadRouter);
 app.use("/api", chatRouter);
+
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

@@ -98,31 +98,24 @@ function ChatList({ isOpen, setIsOpen }) {
           )}
         </div>
 
-        <Link className="mx-1 flex items-center gap-2" to="">
+        <Link className="mx-1 flex items-center gap-2" to={`/home`}>
           <Search className="h-5 w-5" />
           {isOpen && <span>Explore Athena AI</span>}
-        </Link>
-
-        <Link className="mx-1 flex items-center gap-2" to="">
-          <Mail className="h-5 w-5" />
-          {isOpen && <span>Contact</span>}
         </Link>
       </div>
 
       <Separator className="bg-zinc-700 mx-auto h-[0.5px]" />
-
+      <div className="flex items-center my-4 gap-2">
+        <History className="h-5 w-5" />
+        {isOpen && <p className="text-sm font-semibold 500">Recent Chats</p>}
+      </div>
       {/* Recent Chats */}
       <div
-        className={`flex flex-col gap-5 p-5 my-15 w-full scroll-auto ${
+        className={`flex flex-col gap-5 p-5 w-full scroll-auto ${
           isOpen ? "overflow-y-scroll" : "overflow-y-hidden"
         }`}
       >
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex items-center gap-2">
-            <History className="h-5 w-5" />
-            {isOpen && <p className="text-sm font-semibold 500">Recent Chats</p>}
-          </div>
-
+        <div className="flex flex-col items-center mb-16 gap-2">
           {chatlistLoading ? (
             "Loading..."
           ) : chatlistData !== undefined ? (
