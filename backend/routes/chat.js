@@ -45,7 +45,9 @@ router.post("/send-message", async (req, res) => {
 
     let query3;
     let values;
-    if (image) {
+    if (Object.keys(image).length !== 0) {
+      console.log("runnnnnnnnnnnnnnnnnnnnn");
+
       query3 =
         `INSERT INTO messages (conversationID, question, answer ,image)` +
         `VALUES (?, ?, ?,?)`;
@@ -82,7 +84,9 @@ router.get("/get-conversation/:conversationId", async (req, res) => {
     if (data.length > 0) {
       return res.status(200).json({ data });
     }
-    return res.status(404).json({ message: "Start a conversation with your personalised AI" });
+    return res
+      .status(404)
+      .json({ message: "Start a conversation with your personalised AI" });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal Server Error" });

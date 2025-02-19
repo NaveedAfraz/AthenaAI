@@ -7,6 +7,7 @@ import { useLocation } from "react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { ChatContext, ChatProvider } from "@/GlobalContext";
+import Markdown from "react-markdown";
 function Chat() {
   // const [question, setQuestion] = useState("");
   const { showQuestion, setShowQuestion, question, setQuestion } =
@@ -106,14 +107,14 @@ function Chat() {
                     )}
                     {console.log(message)}
                     <p className="text-white p-3 mx-5 bg-[#04021b] rounded-lg hover:shadow-md transition-shadow max-w-[70%]">
-                      {message.question}
+                      <Markdown>{message.question}</Markdown>
                     </p>
                   </div>
                 </div>
 
                 <div className="text-white flex justify-start">
                   <p className="p-3  bg-[#04021b] rounded-lg hover:shadow-md transition-shadow max-w-[90%]">
-                    {message.answer}
+                    <Markdown>{message.answer}</Markdown>
                   </p>
                 </div>
               </div>
@@ -137,7 +138,7 @@ function Chat() {
         {answer && (
           <div className="flex justify-start">
             <p className="text-white p-3 bg-[#04021b] rounded-lg hover:shadow-md transition-shadow max-w-[70%]">
-              {answer}
+              <Markdown>{answer}</Markdown>
             </p>
           </div>
         )}
