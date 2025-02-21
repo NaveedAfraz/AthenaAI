@@ -48,7 +48,7 @@ router.post("/send-message", async (req, res) => {
     let query3;
     let values;
     if (Object.keys(image).length !== 0) {
-      console.log("runnnnnnnnnnnnnnnnnnnnn");
+      // console.log("runnnnnnnnnnnnnnnnnnnnn");
 
       query3 =
         `INSERT INTO messages (conversationID, question, answer ,image)` +
@@ -114,10 +114,19 @@ router.get("/get-chatList/:userId", async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+router.post("/new-route", async (req, res) => {
+  const { param1, param2 } = req.body;
+  try {
+    if (!param1 || !param2)
+      return res.status(400).json({ message: "something is missing" });
 
+    // Add your logic here
 
-
-
-
+    return res.status(200).json({ message: "New route created successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 module.exports = router;
