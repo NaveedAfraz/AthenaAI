@@ -14,7 +14,14 @@ import { useLocation, useNavigate } from "react-router";
 import { ChatContext } from "@/GlobalContext";
 import { useAuth } from "@clerk/clerk-react";
 
-function Input({ img, setImg, setAnswer, setmessages, messages }) {
+function Input({
+  img,
+  setImg,
+  setAnswer,
+  setmessages,
+  messages,
+  chatConversation,
+}) {
   const { setShowQuestion, question, setQuestion } = useContext(ChatContext);
   const chat = model.startChat({
     history: [
@@ -130,7 +137,7 @@ function Input({ img, setImg, setAnswer, setmessages, messages }) {
           <div className="relative inline-block">
             <IKImage
               urlEndpoint={import.meta.env.VITE_IMAGE_URL_ENDPOINT}
-              path={img.dbData} // Use the correct key (e.g., `url`, `path`, etc.) 
+              path={img.dbData} // Use the correct key (e.g., `url`, `path`, etc.)
               transformation={[{ height: 100, width: 100 }]}
             />
             <button className="absolute top-0 right-0 bg-white/80 rounded-full p-1 flex items-center justify-center cursor-pointer hover:bg-white">

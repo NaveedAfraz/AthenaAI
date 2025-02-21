@@ -166,6 +166,7 @@ function Chat() {
           messages={messages}
           setmessages={setmessages}
           answer={answer}
+          chatConversation={chatConversation}
         />
       </div>
     </div>

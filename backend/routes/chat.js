@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const pool = require("../db");
+const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_PUBLIC_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 router.post("/add-chat", async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
@@ -112,4 +114,10 @@ router.get("/get-chatList/:userId", async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+
+
+
+
+
 module.exports = router;
