@@ -22,7 +22,6 @@ const ANIMATION_VARIANTS = {
 // Memoized Chat List Item component to prevent unnecessary re-renders
 const ChatListItem = React.memo(({ chat, isActive, onSelect, index }) => {
   const { ConversationsID, Title } = chat;
-  
   return (
     <motion.div
       custom={index}
@@ -71,14 +70,11 @@ const ChatListItem = React.memo(({ chat, isActive, onSelect, index }) => {
       </NavLink>
     </motion.div>
   );
-}, (prevProps, nextProps) => {
-  // Only re-render if these props change
-  return (
-    prevProps.chat.ConversationsID === nextProps.chat.ConversationsID &&
-    prevProps.isActive === nextProps.isActive &&
-    prevProps.index === nextProps.index
-  );
-});
+}, (prevProps, nextProps) => (
+  prevProps.chat.ConversationsID === nextProps.chat.ConversationsID &&
+  prevProps.isActive === nextProps.isActive &&
+  prevProps.index === nextProps.index
+));
 
 // Memoized Empty State component
 const EmptyState = React.memo(({ onCreateChat }) => (
@@ -120,10 +116,9 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
   const navigate = useNavigate();
   const { conversationId } = useParams();
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-  const prevIsOpenRef = useRef(isOpen);
   const chatListRef = useRef(null);
-  
-  // Get chat list data and methods from custom hook
+
+  // Custom hook for fetching chat list
   const {
     chatList = [],
     isLoading,
@@ -133,67 +128,35 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
     isCreating: isPending
   } = useChatList();
 
-  // Memoize the chat list to prevent unnecessary re-renders
+  // Memoize chatList to prevent unnecessary re-renders
   const memoizedChatList = useMemo(() => chatList, [chatList]);
 
   // Handle responsive design
   useEffect(() => {
-    const handleResize = () => {
-      const newIsMobile = window.innerWidth < 768;
-      if (newIsMobile !== isMobile) {
-        setIsMobile(newIsMobile);
-      }
-    };
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    const optimizedResize = () => window.requestAnimationFrame(handleResize);
 
-    // Use requestAnimationFrame for better performance
-    const handleResizeWithRAF = () => {
-      let ticking = false;
-      return () => {
-        if (!ticking) {
-          window.requestAnimationFrame(() => {
-            handleResize();
-            ticking = false;
-          });
-          ticking = true;
-        }
-      };
-    };
-
-    const optimizedResize = handleResizeWithRAF();
     window.addEventListener('resize', optimizedResize, { passive: true });
-    
-    // Initial check
     handleResize();
-    
-    return () => {
-      window.removeEventListener('resize', optimizedResize);
-    };
-  }, [isMobile]);
+    return () => window.removeEventListener('resize', optimizedResize);
+  }, []);
 
-  // Handle chat creation with error handling
+  // Handle chat creation
   const handleCreateChat = useCallback(async () => {
-    try {
-      const result = await createChat();
-      if (result?.conversationId) {
-        navigate(`chats/${result.conversationId}`, { replace: true });
-        if (isMobile && !isEmbedded) {
-          setIsOpen(false);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to create chat:', error);
+    const result = await createChat();
+    if (result?.conversationId) {
+      navigate(`chats/${result.conversationId}`, { replace: true });
+      if (isMobile && !isEmbedded) setIsOpen(false);
     }
   }, [createChat, isMobile, isEmbedded, setIsOpen, navigate]);
 
-  // Handle chat selection with navigation
+  // Handle chat selection
   const handleSelect = useCallback((chatId) => {
     navigate(`chats/${chatId}`, { replace: true });
-    if (isMobile && !isEmbedded) {
-      setIsOpen(false);
-    }
+    if (isMobile && !isEmbedded) setIsOpen(false);
   }, [isMobile, isEmbedded, setIsOpen, navigate]);
 
-  // Memoize the new chat button to prevent re-renders
+  // Memoize new chat button
   const newChatButton = useMemo(() => (
     <button
       onClick={handleCreateChat}
@@ -216,12 +179,12 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
     </button>
   ), [handleCreateChat, isPending]);
 
-  // Memoize the chat list content
+  // Memoize chat list content
   const chatListContent = useMemo(() => {
     if (isLoading) return <LoadingState />;
     if (isError) return <ErrorState onRetry={refetch} />;
     if (!memoizedChatList.length) return <EmptyState onCreateChat={handleCreateChat} />;
-    
+
     return (
       <AnimatePresence mode="popLayout">
         {memoizedChatList.map((chat, index) => (
@@ -237,32 +200,32 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
     );
   }, [isLoading, isError, memoizedChatList, conversationId, handleSelect, handleCreateChat, refetch]);
 
-  // Memoized content component to prevent re-renders
+  // Memoize Content component
   const Content = useMemo(() => (
-    <div className="flex flex-col h-screen">
-      <div 
+    <div className="flex flex-col h-screen w-full overflow-hidden">
+      <div
         ref={chatListRef}
-        className="flex-1 overflow-y-auto mb-[20%] pr-2 scrollbar-thin scrollbar-thumb-gray-300"
+        className="flex-1 overflow-y-auto overflow-x-hidden mb-[20%] pr-2 scrollbar-thin scrollbar-thumb-gray-300 w-full"
       >
         {/* New Chat Button */}
-        <motion.div 
-          className="p-4" 
-          initial={{ opacity: 0, y: 10 }} 
-          animate={{ opacity: 1, y: 0 }} 
+        <motion.div
+          className="p-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
           {newChatButton}
         </motion.div>
 
         {/* Explore Link */}
-        <motion.div 
-          className="px-3 py-2" 
-          initial={{ opacity: 0, y: 10 }} 
-          animate={{ opacity: 1, y: 0 }} 
+        <motion.div
+          className="px-3 py-2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
         >
-          <NavLink 
-            to="/home" 
+          <NavLink
+            to="/home"
             className={({ isActive }) => cn(
               'flex items-center space-x-3 p-3 rounded-xl',
               'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
@@ -278,10 +241,10 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
         <Separator className="mx-4 my-2 bg-gray-200" />
 
         {/* Recent Chats Section */}
-        <motion.div 
-          className="px-3 py-2" 
-          initial={{ opacity: 0, y: 10 }} 
-          animate={{ opacity: 1, y: 0 }} 
+        <motion.div
+          className="px-3 py-2 w-full"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
           <div className="flex items-center px-3 py-2 mb-3">
@@ -296,10 +259,9 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
     </div>
   ), [newChatButton, chatListContent]);
 
-  // Memoize the overlay to prevent re-renders
+  // Memoize overlay
   const overlay = useMemo(() => {
     if (!isMobile || !isOpen) return null;
-    
     return (
       <motion.div
         className="fixed inset-0 bg-black/50 z-30"
@@ -314,8 +276,7 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
 
   // Early return for embedded mode
   if (isEmbedded) return Content;
-  
-  // Don't render anything if on mobile and closed
+  // Return nothing if closed on mobile
   if (!isOpen && isMobile) return null;
 
   return (
@@ -323,7 +284,7 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
       {overlay}
       <motion.div
         className={cn(
-          'h-screen flex flex-col z-40 bg-white border-r border-gray-200',
+          'h-screen flex flex-col z-40 bg-white border-r border-gray-200 overflow-hidden',
           isMobile ? 'fixed inset-y-0 left-0 w-full' : 'relative w-80'
         )}
         initial="closed"
@@ -334,13 +295,10 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
       </motion.div>
     </>
   );
-}, (prevProps, nextProps) => {
-  // Only re-render if these props change
-  return (
-    prevProps.isOpen === nextProps.isOpen &&
-    prevProps.isEmbedded === nextProps.isEmbedded
-  );
-});
+}, (prevProps, nextProps) => (
+  prevProps.isOpen === nextProps.isOpen &&
+  prevProps.isEmbedded === nextProps.isEmbedded
+));
 
 ChatList.displayName = 'ChatList';
 

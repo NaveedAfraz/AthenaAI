@@ -7,22 +7,22 @@ import Markdown from 'react-markdown';
 import useChat from '@/hooks/useChat';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
+import ChatLoading from '@/components/common/layouts/Home/chatLoading';
 
 // Animation variants
 const messageVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
+  visible: {
+    opacity: 1,
+    y: 0,
     scale: 1,
-    transition: { 
+    transition: {
       duration: 0.3,
       ease: "easeOut"
     }
   },
-  exit: { 
-    opacity: 0, 
+  exit: {
+    opacity: 0,
     y: -10,
     transition: { duration: 0.2 }
   },
@@ -30,13 +30,13 @@ const messageVariants = {
 
 const typingVariants = {
   initial: { opacity: 0, y: 10 },
-  animate: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.3 } 
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3 }
   },
-  exit: { 
-    opacity: 0, 
+  exit: {
+    opacity: 0,
     y: -10,
     transition: { duration: 0.2 }
   },
@@ -44,7 +44,7 @@ const typingVariants = {
 
 function Chat() {
   const { showQuestion, question } = useContext(ChatContext);
-  
+
   const {
     messages,
     answer,
@@ -59,13 +59,14 @@ function Chat() {
     setMessages
   } = useChat();
   console.log(messages);
-  
+
   const handleSendMessage = () => {
     if (answer.trim() || img) {
       // Handle send message logic here
       console.log('Sending message:', answer);
     }
   };
+  console.log(img);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -79,7 +80,7 @@ function Chat() {
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-4xl mx-auto space-y-6">
-          
+
           {/* Empty state */}
           {messages?.length === 0 && !isLoading && !isError && (
             <motion.div
@@ -101,7 +102,7 @@ function Chat() {
 
           {/* Messages */}
           <AnimatePresence initial={false}>
-            {messages?.map((message, index) => (
+            {messages?.map((message) => (
               <>
                 {/* User Message */}
                 <motion.div
@@ -189,7 +190,7 @@ function Chat() {
             )}
 
             {/* Typing indicator */}
-            {isLoading && !isError && (
+            {/* {isLoading && !isError && (
               <motion.div
                 variants={typingVariants}
                 initial="initial"
@@ -210,8 +211,10 @@ function Chat() {
                   </div>
                 </div>
               </motion.div>
-            )}
-
+            )} */}
+            <div className="h-[100%]">
+             {isLoading && <ChatLoading isLoading={isLoading} isError={isError} />}
+            </div>
             {/* Error message */}
             {isError && (
               <motion.div
@@ -241,17 +244,17 @@ function Chat() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        <div className="max-w-4xl mx-auto">
+      <div className={`border-t border-gray-200  dark:border-gray-700 bg-white dark:bg-gray-800 p-4 relative ${img ? 'mt-17' : ''}  `}>
+        <div className="max-w-4xl mx-auto overflow-visible">
           <div className="relative flex items-end space-x-3">
             {/* Image preview */}
             {img && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="absolute bottom-full left-0 mb-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+                className="absolute left-0 bottom-[115%] p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
               >
-                <div className="relative">
+                <div className="relative ">
                   <img
                     src={img}
                     alt="Preview"
@@ -316,7 +319,7 @@ function Chat() {
               </Button>
             </div>
           </div>
-          
+
           {/* Helper text */}
           <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>Press Enter to send, Shift+Enter for new line</span>
@@ -324,7 +327,7 @@ function Chat() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 
