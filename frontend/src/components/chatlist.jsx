@@ -1,312 +1,347 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { NavLink, useNavigate, useParams } from 'react-router';
 import { Separator } from '@/components/ui/separator';
-import { 
-  PlusCircle, 
-  Search, 
-  History, 
-  MessageSquare,
-  Loader2
-} from 'lucide-react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import { useAuth } from '@clerk/clerk-react';
+import { PlusCircle, Search, History, MessageSquare, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useChatList } from '@/hooks/useChatList';
 
-const ChatList = ({ isOpen, setIsOpen, isEmbedded = false }) => {
-  const { userId } = useAuth();
+// Constants for animation variants to prevent recreation on each render
+const ANIMATION_VARIANTS = {
+  sidebar: {
+    open: { width: '320px', x: 0, opacity: 1, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } },
+    closed: { width: '320px', x: '-100%', opacity: 1, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } }
+  },
+  listItem: {
+    hidden: { opacity: 0, x: -20 },
+    visible: (i) => ({ opacity: 1, x: 0, transition: { duration: 0.2, delay: i * 0.05 } })
+  },
+  overlay: { open: { opacity: 1 }, closed: { opacity: 0 } }
+};
+
+// Memoized Chat List Item component to prevent unnecessary re-renders
+const ChatListItem = React.memo(({ chat, isActive, onSelect, index }) => {
+  const { ConversationsID, Title } = chat;
+  
+  return (
+    <motion.div
+      custom={index}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+      variants={ANIMATION_VARIANTS.listItem}
+      layout
+      className="relative"
+    >
+      <NavLink
+        to={`chats/${ConversationsID}`}
+        className={({ isActive: isNavActive }) =>
+          cn(
+            'flex items-center space-x-3 p-3 rounded-xl transition-all duration-200',
+            'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+            'group border border-transparent',
+            isActive && 'bg-blue-50 border-blue-200 text-blue-900 shadow-sm',
+            'w-full block' // Ensure full width and block display
+          )
+        }
+        onClick={(e) => {
+          e.preventDefault();
+          onSelect(ConversationsID);
+        }}
+      >
+        <MessageSquare
+          className={cn(
+            'h-5 w-5 flex-shrink-0 transition-all duration-200',
+            isActive ? 'text-blue-600 scale-110' : 'text-gray-500 group-hover:text-blue-600 group-hover:scale-105'
+          )}
+        />
+        <span
+          className="text-sm truncate flex-1 text-left font-medium pointer-events-none"
+          title={Title || 'New Chat'}
+        >
+          {Title || 'New Chat'}
+        </span>
+        {isActive && (
+          <motion.div
+            className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500 rounded-r"
+            layoutId="activeIndicator"
+            transition={{ duration: 0.2 }}
+          />
+        )}
+      </NavLink>
+    </motion.div>
+  );
+}, (prevProps, nextProps) => {
+  // Only re-render if these props change
+  return (
+    prevProps.chat.ConversationsID === nextProps.chat.ConversationsID &&
+    prevProps.isActive === nextProps.isActive &&
+    prevProps.index === nextProps.index
+  );
+});
+
+// Memoized Empty State component
+const EmptyState = React.memo(({ onCreateChat }) => (
+  <div className="px-3 py-6 text-center">
+    <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+      <MessageSquare className="h-8 w-8 text-gray-400 mx-auto mb-3" />
+      <p className="text-sm text-gray-500 mb-3">No conversations yet</p>
+      <button
+        onClick={onCreateChat}
+        className="text-sm text-blue-400 hover:text-blue-300"
+      >
+        Start your first chat
+      </button>
+    </div>
+  </div>
+));
+
+// Memoized Loading State component
+const LoadingState = React.memo(() => (
+  <div className="px-3 py-8 flex justify-center">
+    <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+  </div>
+));
+
+// Memoized Error State component
+const ErrorState = React.memo(({ onRetry }) => (
+  <div className="px-3 py-4 text-center">
+    <p className="text-sm text-red-400 mb-2">Failed to load chats</p>
+    <button
+      onClick={onRetry}
+      className="text-sm text-blue-400 hover:text-blue-300"
+    >
+      Try again
+    </button>
+  </div>
+));
+
+const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const { conversationId } = useParams();
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const prevIsOpenRef = useRef(isOpen);
+  const chatListRef = useRef(null);
+  
+  // Get chat list data and methods from custom hook
+  const {
+    chatList = [],
+    isLoading,
+    isError,
+    refetch,
+    createChat,
+    isCreating: isPending
+  } = useChatList();
 
-  // Handle window resize for mobile detection
+  // Memoize the chat list to prevent unnecessary re-renders
+  const memoizedChatList = useMemo(() => chatList, [chatList]);
+
+  // Handle responsive design
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Fetch chat list
-  const {
-    data: chatlistData,
-    isLoading: chatlistLoading,
-    isError: chatlistError,
-    refetch: refetchChats
-  } = useQuery({
-    queryKey: ['chatlist', userId],
-    queryFn: async () => {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3006'}/api/get-chatList/${userId}`,
-        { withCredentials: true }
-      );
-      return res.data;
-    },
-    enabled: !!userId,
-    retry: 2,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Create new chat mutation
-  const { mutate: createChat, isPending: isCreating } = useMutation({
-    mutationFn: async () => {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3006'}/api/add-chat`,
-        { userId },
-        { withCredentials: true }
-      );
-      return res.data; 
-    },
-    onSuccess: (data) => {
-      refetchChats();
-      navigate(`chats/${data.conversationId}`);
-      if (isMobile && !isEmbedded) { // Only auto-close if not embedded
-        setIsOpen(false);
+      const newIsMobile = window.innerWidth < 768;
+      if (newIsMobile !== isMobile) {
+        setIsMobile(newIsMobile);
       }
-    },
-    onError: (error) => {
-      console.error('Error creating chat:', error);
-    },
-  });
+    };
 
-  // Animation variants for standalone mode
-  const sidebarVariants = {
-    open: { 
-      width: isMobile ? '100%' : '320px', 
-      x: 0,
-      opacity: 1,
-      transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] }
-    },
-    closed: { 
-      width: isMobile ? '100%' : '320px', 
-      x: '-100%',
-      opacity: isMobile ? 0 : 1,
-      transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] }
+    // Use requestAnimationFrame for better performance
+    const handleResizeWithRAF = () => {
+      let ticking = false;
+      return () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            handleResize();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      };
+    };
+
+    const optimizedResize = handleResizeWithRAF();
+    window.addEventListener('resize', optimizedResize, { passive: true });
+    
+    // Initial check
+    handleResize();
+    
+    return () => {
+      window.removeEventListener('resize', optimizedResize);
+    };
+  }, [isMobile]);
+
+  // Handle chat creation with error handling
+  const handleCreateChat = useCallback(async () => {
+    try {
+      const result = await createChat();
+      if (result?.conversationId) {
+        navigate(`chats/${result.conversationId}`, { replace: true });
+        if (isMobile && !isEmbedded) {
+          setIsOpen(false);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to create chat:', error);
     }
-  };
+  }, [createChat, isMobile, isEmbedded, setIsOpen, navigate]);
 
-  const listItemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: (index) => ({
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.2, delay: index * 0.05 }
-    })
-  };
+  // Handle chat selection with navigation
+  const handleSelect = useCallback((chatId) => {
+    navigate(`chats/${chatId}`, { replace: true });
+    if (isMobile && !isEmbedded) {
+      setIsOpen(false);
+    }
+  }, [isMobile, isEmbedded, setIsOpen, navigate]);
 
-  const overlayVariants = {
-    open: { opacity: 1 },
-    closed: { opacity: 0 }
-  };
-  
-  // Reusable component for the list content
-  const ChatListContent = () => (
+  // Memoize the new chat button to prevent re-renders
+  const newChatButton = useMemo(() => (
+    <button
+      onClick={handleCreateChat}
+      disabled={isPending}
+      className={cn(
+        'w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl',
+        'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700',
+        'text-white font-medium transform hover:scale-[1.02] active:scale-[0.98]',
+        'shadow-lg shadow-blue-600/25',
+        'disabled:opacity-50 disabled:cursor-not-allowed',
+        'group transition-all duration-200'
+      )}
+    >
+      {isPending ? (
+        <Loader2 className="h-5 w-5 animate-spin" />
+      ) : (
+        <PlusCircle className="h-5 w-5 group-hover:rotate-90 transition-transform duration-200" />
+      )}
+      <span>{isPending ? 'Creating...' : 'New Chat'}</span>
+    </button>
+  ), [handleCreateChat, isPending]);
+
+  // Memoize the chat list content
+  const chatListContent = useMemo(() => {
+    if (isLoading) return <LoadingState />;
+    if (isError) return <ErrorState onRetry={refetch} />;
+    if (!memoizedChatList.length) return <EmptyState onCreateChat={handleCreateChat} />;
+    
+    return (
+      <AnimatePresence mode="popLayout">
+        {memoizedChatList.map((chat, index) => (
+          <ChatListItem
+            key={chat.ConversationsID}
+            chat={chat}
+            isActive={conversationId === chat.ConversationsID}
+            onSelect={handleSelect}
+            index={index}
+          />
+        ))}
+      </AnimatePresence>
+    );
+  }, [isLoading, isError, memoizedChatList, conversationId, handleSelect, handleCreateChat, refetch]);
+
+  // Memoized content component to prevent re-renders
+  const Content = useMemo(() => (
     <div className="flex flex-col h-screen">
-      <div className="flex-1 overflow-y-auto overflow-x-hidden mb-[20%] pr-[2px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent z-220">
+      <div 
+        ref={chatListRef}
+        className="flex-1 overflow-y-auto mb-[20%] pr-2 scrollbar-thin scrollbar-thumb-gray-300"
+      >
+        {/* New Chat Button */}
         <motion.div 
-            className="p-4" 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+          className="p-4" 
+          initial={{ opacity: 0, y: 10 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.2 }}
         >
-            <button
-              onClick={() => createChat()}
-              disabled={isCreating}
-              className={cn(
-                'w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl',
-                'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700',
-                'text-white font-medium transition-all duration-200',
-                'transform hover:scale-[1.02] active:scale-[0.98]',
-                'shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40',
-                'disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none',
-                'group'
-              )}
-            >
-              {isCreating ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <PlusCircle className="h-5 w-5 group-hover:rotate-90 transition-transform duration-200" />
-              )}
-              <span className="whitespace-nowrap">
-                {isCreating ? 'Creating...' : 'New Chat'}
-              </span>
-            </button>
+          {newChatButton}
         </motion.div>
 
+        {/* Explore Link */}
         <motion.div 
-            className="px-3 py-2"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
+          className="px-3 py-2" 
+          initial={{ opacity: 0, y: 10 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.25 }}
         >
-            <Link 
-              to="/home"
-              className={cn(
-                'flex items-center space-x-3 p-3 rounded-xl transition-all duration-200',
-                'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-                'group border border-transparent hover:border-gray-200'
-              )}
-            >
-              <Search className="h-5 w-5 text-blue-600 group-hover:scale-110 transition-transform duration-200" />
-              <span className="text-sm font-medium">
-                Explore Athena AI
-              </span>
-            </Link>
+          <NavLink 
+            to="/home" 
+            className={({ isActive }) => cn(
+              'flex items-center space-x-3 p-3 rounded-xl',
+              'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+              'border border-transparent hover:border-gray-200',
+              isActive && 'bg-gray-100 border-gray-200'
+            )}
+          >
+            <Search className="h-5 w-5 text-blue-600" />
+            <span className="text-sm font-medium">Explore Athena AI</span>
+          </NavLink>
         </motion.div>
 
         <Separator className="mx-4 my-2 bg-gray-200" />
 
+        {/* Recent Chats Section */}
         <motion.div 
-            className="px-3 py-2"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+          className="px-3 py-2" 
+          initial={{ opacity: 0, y: 10 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.3 }}
         >
-            <div className="flex items-center px-3 py-2 mb-3">
-              <History className="h-5 w-5 text-purple-400 mr-3" />
-              <span className="text-sm font-semibold text-gray-500">
-                Recent Chats
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              {chatlistLoading ? (
-                <motion.div 
-                  className="px-3 py-8 flex justify-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className="h-2 w-2 bg-blue-400 rounded-full animate-bounce"></div>
-                    <div className="h-2 w-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="h-2 w-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </motion.div>
-              ) : chatlistError ? (
-                <motion.div 
-                  className="px-3 py-4 text-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <p className="text-sm text-red-400 mb-2">Failed to load chats</p>
-                  <button
-                    onClick={() => refetchChats()}
-                    className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                  >
-                    Try again
-                  </button>
-                </motion.div>
-              ) : chatlistData?.data?.length > 0 ? (
-                <AnimatePresence mode="popLayout">
-                  {chatlistData.data.map((chat, index) => {
-                    const isActive = location.pathname.includes(chat.ConversationsID);
-                    return (
-                      <motion.div
-                        key={chat.ConversationsID}
-                        custom={index}
-                        initial="hidden"
-                        animate="visible"
-                        exit="hidden"
-                        variants={listItemVariants}
-                        layout
-                        className="relative"
-                      >
-                        <Link
-                          to={`chats/${chat.ConversationsID}`}
-                          className={cn(
-                            'flex items-center space-x-3 p-3 rounded-xl transition-all duration-200',
-                            'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-                            'group border border-transparent',
-                            isActive && 'bg-blue-50 border-blue-200 text-blue-900 shadow-sm'
-                          )}
-                          onClick={() => {
-                            if (isMobile && !isEmbedded) setIsOpen(false);
-                          }}
-                        >
-                          <MessageSquare className={cn(
-                            'h-5 w-5 flex-shrink-0 transition-all duration-200',
-                            isActive ? 'text-blue-600 scale-110' : 'text-gray-500 group-hover:text-blue-600 group-hover:scale-105'
-                          )} />
-                          <span
-                            className="text-sm truncate flex-1 text-left font-medium"
-                            title={chat.Title || 'New Chat'}
-                          >
-                            {chat.Title || 'New Chat'}
-                          </span>
-                          {isActive && (
-                            <motion.div
-                              className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500 rounded-r"
-                              layoutId="activeIndicator"
-                              transition={{ duration: 0.2 }}
-                            />
-                          )}
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              ) : (
-                <motion.div 
-                  className="px-3 py-6 text-center"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
-                    <MessageSquare className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-                    <p className="text-sm text-gray-500 mb-3">No conversations yet</p>
-                    <button
-                      onClick={() => createChat()}
-                      className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium"
-                    >
-                      Start your first chat
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </div>
+          <div className="flex items-center px-3 py-2 mb-3">
+            <History className="h-5 w-5 text-purple-400 mr-3" />
+            <span className="text-sm font-semibold text-gray-500">Recent Chats</span>
+          </div>
+          <div className="space-y-1">
+            {chatListContent}
+          </div>
         </motion.div>
       </div>
     </div>
-  );
+  ), [newChatButton, chatListContent]);
 
-  // If embedded, only render the content part.
-  if (isEmbedded) {
-    return <ChatListContent />;
-  }
+  // Memoize the overlay to prevent re-renders
+  const overlay = useMemo(() => {
+    if (!isMobile || !isOpen) return null;
+    
+    return (
+      <motion.div
+        className="fixed inset-0 bg-black/50 z-30"
+        initial="closed"
+        animate="open"
+        exit="closed"
+        variants={ANIMATION_VARIANTS.overlay}
+        onClick={() => setIsOpen(false)}
+      />
+    );
+  }, [isMobile, isOpen, setIsOpen]);
 
-  // If standalone, render the full component with container and overlay.
-  // The `isOpen` check for mobile is to prevent rendering an empty, invisible container.
+  // Early return for embedded mode
+  if (isEmbedded) return Content;
+  
+  // Don't render anything if on mobile and closed
   if (!isOpen && isMobile) return null;
 
   return (
     <>
-      {isMobile && isOpen && (
-        <motion.div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 md:hidden"
-          initial="closed"
-          animate="open"
-          exit="closed"
-          variants={overlayVariants}
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      {overlay}
       <motion.div
         className={cn(
-          "h-screen flex flex-col z-40 bg-white",
-          "border-r border-gray-200",
-          isMobile ? "fixed inset-y-0 left-0 w-full" : "relative w-80"
+          'h-screen flex flex-col z-40 bg-white border-r border-gray-200',
+          isMobile ? 'fixed inset-y-0 left-0 w-full' : 'relative w-80'
         )}
         initial="closed"
-        animate={isOpen ? "open" : "closed"}
-        variants={sidebarVariants}
+        animate={isOpen ? 'open' : 'closed'}
+        variants={ANIMATION_VARIANTS.sidebar}
       >
-        <ChatListContent />
+        {Content}
       </motion.div>
     </>
   );
-};
+}, (prevProps, nextProps) => {
+  // Only re-render if these props change
+  return (
+    prevProps.isOpen === nextProps.isOpen &&
+    prevProps.isEmbedded === nextProps.isEmbedded
+  );
+});
+
+ChatList.displayName = 'ChatList';
 
 export default ChatList;

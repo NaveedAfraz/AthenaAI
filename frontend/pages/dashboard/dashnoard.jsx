@@ -76,7 +76,14 @@ function Dashboard() {
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  useEffect(()=>{
+    console.log("mouning");
+    return ()=>{
+      console.log("unmouning");
+    }
+  },[])
   useEffect(() => {
+    
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);

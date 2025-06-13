@@ -58,7 +58,8 @@ function Chat() {
     refreshConversation,
     setMessages
   } = useChat();
-
+  console.log(messages);
+  
   const handleSendMessage = () => {
     if (answer.trim() || img) {
       // Handle send message logic here
@@ -101,7 +102,7 @@ function Chat() {
           {/* Messages */}
           <AnimatePresence initial={false}>
             {messages?.map((message, index) => (
-              <React.Fragment key={index}>
+              <>
                 {/* User Message */}
                 <motion.div
                   variants={messageVariants}
@@ -153,7 +154,7 @@ function Chat() {
                     </div>
                   </div>
                 </motion.div>
-              </React.Fragment>
+              </>
             ))}
 
             {/* Current question being asked */}
