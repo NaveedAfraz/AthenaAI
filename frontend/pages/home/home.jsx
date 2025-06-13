@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { MessageCircle, Zap, Lock, Brain, ChevronRight } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import React, { useState, useEffect, useRef } from "react";
+import { MessageCircle, Zap, Lock, Brain, ChevronRight, Sparkles, Code, Shield, Bot, ArrowRight } from "lucide-react";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useNavigate } from "react-router";
 import Footer from "@/components/common/layouts/footer";
+import { cn } from "@/lib/utils";
 
 const TypeWriter = ({ text, speed }) => {
   const [displayText, setDisplayText] = useState("");
@@ -34,96 +30,234 @@ const TypeWriter = ({ text, speed }) => {
 
 const Homepage = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const controls = useAnimation();
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
   const navigate = useNavigate();
+
   useEffect(() => {
     setIsVisible(true);
-  }, []);
+    if (isInView) {
+      controls.start('visible');
+    }
+  }, [isInView, controls]);
+
+  const container = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+    },
+  };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 text-white overflow-hidden">
+      {/* Animated background */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent opacity-30" />
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
+      </div>
+
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div
-          className={`text-center max-w-3xl mx-auto transform transition-all duration-1000 ${
-            isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-          }`}
-        >
-          <h1 className="text-5xl font-bold mb-6 bg-clip-text h-16 text-transparent bg-gradient-to-r from-blue-400 to-violet-400">
-            <TypeWriter text="Your AI Assistant" speed={100}></TypeWriter>
-          </h1>
-          <p className="text-xl text-gray-300 mb-8">
-            Experience the next generation of AI communication. Smart, secure,
-            and tailored to your needs.
-          </p>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="bg-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-blue-700 transition-all duration-300 hover:scale-105 flex items-center mx-auto"
+      <div className="relative z-10">
+        <div className="container mx-auto px-4 py-24 md:py-32">
+          <motion.div
+            ref={ref}
+            initial="hidden"
+            animate={controls}
+            variants={container}
+            className="text-center max-w-4xl mx-auto space-y-6"
           >
-            Get Started <ChevronRight className="ml-2" size={20} />
-          </button>
+            <motion.div variants={item} className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-blue-500/10 text-blue-300 text-sm mb-4">
+              <Sparkles className="h-4 w-4" />
+              <span>Powered by Advanced AI</span>
+            </motion.div>
+            
+            <motion.h1 
+              variants={item}
+              className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 pb-2"
+            >
+              <TypeWriter text="Your AI Assistant" speed={100} />
+            </motion.h1>
+            
+            <motion.p 
+              variants={item}
+              className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed"
+            >
+              Experience the next generation of AI communication. Smart, secure, and tailored to your needs.
+            </motion.p>
+            
+            <motion.div variants={item} className="pt-4">
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="group relative inline-flex h-12 items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-8 font-medium text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/30"
+              >
+                <span className="relative">Get Started</span>
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+              </button>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[
-            {
-              icon: <MessageCircle className="h-12 w-12 text-blue-400 mb-4" />,
-              title: "Natural Conversations",
-              description:
-                "Engage in fluid, context-aware discussions that feel natural and intuitive.",
-            },
-            {
-              icon: <Brain className="h-12 w-12 text-blue-400 mb-4" />,
-              title: "Advanced AI",
-              description:
-                "Powered by state-of-the-art language models for intelligent responses.",
-            },
-            {
-              icon: <Lock className="h-12 w-12 text-blue-400 mb-4" />,
-              title: "Secure & Private",
-              description:
-                "Your Conversations are encrypted and your privacy is our priority.",
-            },
-          ].map((feature, index) => (
-            <Card
-              key={index}
-              className="bg-gray-800 border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-gray-750"
-            >
-              <CardHeader>
-                {feature.icon}
-                <CardTitle className="text-white">{feature.title}</CardTitle>
-                <CardDescription className="text-gray-300">
-                  {feature.description}
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
+      <div className="relative py-24 overflow-hidden">
+        <div className="absolute -top-1/2 left-0 right-0 h-[200%] -z-10 bg-gradient-to-b from-transparent via-slate-900/50 to-transparent" />
+        <div className="container mx-auto px-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-4">
+              Powerful Features
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Discover what makes our AI assistant the perfect companion for your daily tasks
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <MessageCircle className="h-8 w-8" />,
+                title: "Natural Conversations",
+                description: "Engage in fluid, context-aware discussions that feel natural and intuitive.",
+                color: "from-blue-500 to-cyan-400"
+              },
+              {
+                icon: <Brain className="h-8 w-8" />,
+                title: "Advanced AI",
+                description: "Powered by state-of-the-art language models for intelligent responses.",
+                color: "from-purple-500 to-pink-400"
+              },
+              {
+                icon: <Lock className="h-8 w-8" />,
+                title: "Secure & Private",
+                description: "Your conversations are encrypted and your privacy is our priority.",
+                color: "from-emerald-500 to-teal-400"
+              },
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <Card className={cn(
+                  "group relative h-full bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 overflow-hidden",
+                  "transition-all duration-500 hover:border-transparent hover:shadow-2xl hover:shadow-blue-500/10"
+                )}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-transparent group-hover:via-blue-500/5 group-hover:to-blue-500/10 transition-all duration-700" />
+                  <CardHeader className="relative z-10">
+                    <div className={cn(
+                      "inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4 bg-gradient-to-br",
+                      feature.color,
+                      "text-white"
+                    )}>
+                      {feature.icon}
+                    </div>
+                    <CardTitle className="text-xl font-semibold text-white mb-2">
+                      {feature.title}
+                    </CardTitle>
+                    <CardDescription className="text-gray-300 leading-relaxed">
+                      {feature.description}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Demo Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="bg-gray-800 rounded-2xl p-8 text-white transform transition-all duration-500 hover:scale-[1.02]">
-          <div className="max-w-2xl mx-auto text-center">
-            <Zap className="h-16 w-16 text-yellow-400 mx-auto mb-6 animate-bounce" />
-            <h2 className="text-3xl font-bold mb-4">Try It Now</h2>
-            <p className="text-gray-300 mb-8">
-              Experience the power of AI-driven Conversations. Ask anything and
-              get intelligent, helpful responses in real-time.
-            </p>
-            <div className="bg-gray-700 rounded-lg p-4 text-left">
-              <p className="text-gray-400 mb-2">Example:</p>
-              <p className="text-white">
-                <TypeWriter
-                  text='"Help me write a professional email to my team about our upcoming project launch."'
-                  speed={50}
-                />
-              </p>
+      {/* CTA Section */}
+      <div className="relative py-24 overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent" />
+        </div>
+        
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="max-w-4xl mx-auto text-center"
+          >
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
+              <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 md:p-12 overflow-hidden">
+                <div className="absolute -right-10 -top-10 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
+                <div className="relative z-10">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white mx-auto">
+                    <Zap className="h-8 w-8" />
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                    Ready to experience the future of AI?
+                  </h2>
+                  <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
+                    Join thousands of users who are already boosting their productivity with our AI assistant.
+                  </p>
+                  <div className="space-y-4 sm:space-y-0 sm:space-x-4">
+                    <button
+                      onClick={() => navigate("/dashboard")}
+                      className="px-8 py-3.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20 inline-flex items-center"
+                    >
+                      Get Started for Free
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+      
+      {/* Demo Prompt Section */}
+      <div className="container mx-auto px-4 pb-24">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="max-w-3xl mx-auto"
+        >
+          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/10 text-blue-400">
+                <Bot className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-medium text-white">Try asking me...</h3>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent rounded-lg -m-1" />
+              <div className="relative bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-lg p-4">
+                <p className="text-gray-200 font-mono text-sm md:text-base">
+                  <TypeWriter
+                    text='"Help me write a professional email to my team about our upcoming project launch."'
+                    speed={30}
+                  />
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
       <Footer />
     </div>
