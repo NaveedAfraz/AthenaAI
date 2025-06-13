@@ -6,7 +6,7 @@ import Footer from "../footer";
 function Layout() {
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <Outlet />
       {/* <Footer /> */}
     </>

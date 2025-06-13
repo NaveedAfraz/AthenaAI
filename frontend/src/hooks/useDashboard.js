@@ -8,9 +8,10 @@ export const useDashboard = () => {
   const { userId, isLoaded } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  console.log(location.pathname.includes("chats"));
   
   // State
-  const [isChatOpen, setIsChatOpen] = useState(location.pathname.includes('/chats'));
+  const [isChatOpen, setIsChatOpen] = useState(location.pathname.includes("chats"));
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -24,7 +25,7 @@ export const useDashboard = () => {
 
   // Update chat open state based on route
   useEffect(() => {
-    setIsChatOpen(location.pathname.includes('/chats'));
+    setIsChatOpen(location.pathname.includes("chats"));
   }, [location.pathname]);
 
   // Start new chat mutation
