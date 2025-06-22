@@ -7,7 +7,7 @@ import { useNavigate, useLocation } from "react-router";
 import Home from "../pages/home/home";
 import Login from "../pages/login/login";
 import Register from "../pages/register/register";
-import Dashboard from '../pages/dashboard/dashnoard';
+import Dashboard from '../pages/dashboard/dashboard';
 import Chat from "../pages/chat/chat";
 
 import Layout from "./components/common/layouts/Home/navFoot";

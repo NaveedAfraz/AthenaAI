@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, forwardRef } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router';
 import { Separator } from '@/components/ui/separator';
 import { PlusCircle, Search, History, MessageSquare, Loader2 } from 'lucide-react';
@@ -20,10 +20,11 @@ const ANIMATION_VARIANTS = {
 };
 
 // Memoized Chat List Item component to prevent unnecessary re-renders
-const ChatListItem = React.memo(({ chat, isActive, onSelect, index }) => {
+const ChatListItem = React.forwardRef(({ chat, isActive, onSelect, index }, ref) => {
   const { ConversationsID, Title } = chat;
   return (
     <motion.div
+      ref={ref}
       custom={index}
       initial="hidden"
       animate="visible"
@@ -77,7 +78,7 @@ const ChatListItem = React.memo(({ chat, isActive, onSelect, index }) => {
 ));
 
 // Memoized Empty State component
-const EmptyState = React.memo(({ onCreateChat }) => (
+const EmptyState = React.forwardRef(({ onCreateChat } , ref) => (
   <div className="px-3 py-6 text-center">
     <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
       <MessageSquare className="h-8 w-8 text-gray-400 mx-auto mb-3" />
@@ -93,14 +94,14 @@ const EmptyState = React.memo(({ onCreateChat }) => (
 ));
 
 // Memoized Loading State component
-const LoadingState = React.memo(() => (
+const LoadingState = React.forwardRef(({}, ref) => (
   <div className="px-3 py-8 flex justify-center">
     <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
   </div>
 ));
 
 // Memoized Error State component
-const ErrorState = React.memo(({ onRetry }) => (
+const ErrorState = React.forwardRef(({ onRetry }, ref) => (
   <div className="px-3 py-4 text-center">
     <p className="text-sm text-red-400 mb-2">Failed to load chats</p>
     <button
@@ -112,7 +113,7 @@ const ErrorState = React.memo(({ onRetry }) => (
   </div>
 ));
 
-const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
+const ChatListComponent = React.forwardRef(({ isOpen, setIsOpen, isEmbedded = false }, ref) => {
   const navigate = useNavigate();
   const { conversationId } = useParams();
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
@@ -283,6 +284,7 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
     <>
       {overlay}
       <motion.div
+        ref={ref}
         className={cn(
           'h-screen flex flex-col z-40 bg-white border-r border-gray-200 overflow-hidden',
           isMobile ? 'fixed inset-y-0 left-0 w-full' : 'relative w-80'
@@ -295,11 +297,13 @@ const ChatList = React.memo(({ isOpen, setIsOpen, isEmbedded = false }) => {
       </motion.div>
     </>
   );
-}, (prevProps, nextProps) => (
+});
+
+ChatListComponent.displayName = 'ChatList';
+
+const ChatList = React.memo(ChatListComponent, (prevProps, nextProps) => (
   prevProps.isOpen === nextProps.isOpen &&
   prevProps.isEmbedded === nextProps.isEmbedded
 ));
-
-ChatList.displayName = 'ChatList';
 
 export default ChatList;

@@ -64,6 +64,7 @@ const itemVariants = {
 };
 
 function Dashboard() {
+  console.log("Dashboard rendering");
   const {
     isChatOpen,
     isSidebarOpen,
@@ -76,14 +77,14 @@ function Dashboard() {
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log("mouning");
-    return ()=>{
+    return () => {
       console.log("unmouning");
     }
-  },[])
+  }, [])
   useEffect(() => {
-    
+
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
@@ -94,7 +95,7 @@ function Dashboard() {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [isSidebarOpen, setIsSidebarOpen]);
+  }, [isSidebarOpen]);
 
   return (
     <div className="flex h-screen w-full bg-gray-50 dark:bg-gray-900">
