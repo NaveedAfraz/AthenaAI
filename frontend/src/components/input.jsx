@@ -20,7 +20,6 @@ function Input({
   setAnswer,
   setmessages,
   messages,
-  chatConversation,
 }) {
   const { setShowQuestion, question, setQuestion } = useContext(ChatContext);
   const chat = model.startChat({
@@ -38,6 +37,7 @@ function Input({
       // maxOutputTokens: 100,
     },
   });
+
   const { userId } = useAuth();
   const location = useLocation();
   const sliced = location.pathname.split("/");

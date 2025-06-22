@@ -2,13 +2,14 @@ import ChatLoading from '@/components/common/layouts/Home/chatLoading'
 import { AnimatePresence } from 'framer-motion'
 import { IKImage } from 'imagekitio-react'
 import { User } from 'lucide-react'
-import React from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import Markdown from 'react-markdown'
 import { motion } from 'framer-motion'
 import { Bot } from 'lucide-react'
 import { useChat } from '@/hooks/useChat'
 import { useContext } from 'react'
 import { ChatContext } from '@/GlobalContext'
+import { useParams } from 'react-router'
 const messageVariants = {
     hidden: { opacity: 0, y: 20, scale: 0.95 },
     visible: {
@@ -27,7 +28,8 @@ const messageVariants = {
     },
 };
 function ChatBox() {
-    const { showQuestion, question } = useContext(ChatContext);
+    const hasLoadedOnce = useRef(false);
+    const { showQuestion, question, setQuestion, setShowQuestion } = useContext(ChatContext);
     const {
         messages,
         answer,
@@ -35,12 +37,25 @@ function ChatBox() {
         endMessageRef,
         isError,
         isLoading,
+        chatConversation,
+        isFetching,
         error,
-        setAnswer,
-        setImg,
-        refreshConversation,
-        setMessages
     } = useChat();
+    const id = useParams().id;
+    console.log("question", showQuestion);
+    console.log("question", question);
+    console.log("messages", messages);
+    console.log("chatConversation", chatConversation);
+    //  alert(hasSubmittedOnce)
+    useEffect(() => {
+        if (!isLoading && !hasLoadedOnce.current) {
+            hasLoadedOnce.current = true;
+        }
+    }, [isLoading]);
+    console.log("id", id);
+    useEffect(() => {
+        hasLoadedOnce.current = false;
+    }, [id]);
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             {/* Empty state */}
@@ -134,9 +149,9 @@ function ChatBox() {
                                     <div className="rounded-2xl overflow-hidden border-2 border-blue-200 dark:border-blue-800 shadow-lg">
                                         <IKImage
                                             urlEndpoint={import.meta.env.VITE_IMAGE_URL_ENDPOINT}
-                                            path={img.dbData}
-                                            transformation={[{ height: 300, width: 400, crop: 'fit' }]}
-                                            className="max-h-64 object-cover"
+                                            path={img.dbData.filePath} // Use the specific property that holds the path
+                                            transformation={[{ height: 80, width: 80 }]}
+                                        //...
                                         />
                                     </div>
                                 )}
@@ -151,56 +166,23 @@ function ChatBox() {
                     </motion.div>
                 )}
 
-                {/* Typing indicator */}
-                {/* {isLoading && !isError && (
-        <motion.div
-          variants={typingVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          className="flex justify-start"
-        >
-          <div className="max-w-3xl flex items-start space-x-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md">
-              <Bot className="h-4 w-4 text-white" />
-            </div>
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-4 py-3 rounded-2xl rounded-tl-md shadow-lg">
-              <div className="flex space-x-1 items-center">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )} */}
+
+
                 <div className="h-[100%]">
-                    {isLoading && <ChatLoading isLoading={isLoading} isError={isError} />}
-                </div>
-                {/* Error message */}
-                {isError && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="max-w-3xl mx-auto"
-                    >
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-xl p-4 shadow-lg">
-                            <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 className="font-medium">Something went wrong</h4>
-                                    <p className="text-sm mt-1">{error?.message || 'An error occurred. Please try again.'}</p>
-                                </div>
+                    {!hasLoadedOnce.current && isLoading ? (
+                        <div className="text-muted-foreground text-sm px-4 py-2">
+                            <div className="text-muted-foreground text-sm px-4 py-2">
+                                <ChatLoading isLoading={isLoading} isError={isError} />
                             </div>
                         </div>
-                    </motion.div>
-                )}
+                    ) : messages?.length === 0 && !isError ? (
+                        <div className="text-muted-foreground text-sm px-4 py-2">
+
+                        </div>
+                    ) : null}
+                </div>
             </AnimatePresence>
-            <div ref={endMessageRef} />
+            <div ref={endMessageRef} className="h-4" />
         </div>
     )
 }

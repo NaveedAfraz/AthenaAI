@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef, forwardRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, forwardRef, useContext } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router';
 import { Separator } from '@/components/ui/separator';
 import { PlusCircle, Search, History, MessageSquare, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useChatList } from '@/hooks/useChatList';
+import { ChatContext } from '@/GlobalContext';
+import useChat from '@/hooks/useChat';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Constants for animation variants to prevent recreation on each render
 const ANIMATION_VARIANTS = {
@@ -78,7 +81,7 @@ const ChatListItem = React.forwardRef(({ chat, isActive, onSelect, index }, ref)
 ));
 
 // Memoized Empty State component
-const EmptyState = React.forwardRef(({ onCreateChat } , ref) => (
+const EmptyState = React.forwardRef(({ onCreateChat }, ref) => (
   <div className="px-3 py-6 text-center">
     <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
       <MessageSquare className="h-8 w-8 text-gray-400 mx-auto mb-3" />
@@ -94,7 +97,7 @@ const EmptyState = React.forwardRef(({ onCreateChat } , ref) => (
 ));
 
 // Memoized Loading State component
-const LoadingState = React.forwardRef(({}, ref) => (
+const LoadingState = React.forwardRef(({ }, ref) => (
   <div className="px-3 py-8 flex justify-center">
     <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
   </div>
@@ -115,10 +118,11 @@ const ErrorState = React.forwardRef(({ onRetry }, ref) => (
 
 const ChatListComponent = React.forwardRef(({ isOpen, setIsOpen, isEmbedded = false }, ref) => {
   const navigate = useNavigate();
-  const { conversationId } = useParams();
+  const { id } = useParams();
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const chatListRef = useRef(null);
-
+  const { setMessages } = useChat();
+  const queryClient = useQueryClient();
   // Custom hook for fetching chat list
   const {
     chatList = [],
@@ -145,6 +149,7 @@ const ChatListComponent = React.forwardRef(({ isOpen, setIsOpen, isEmbedded = fa
   // Handle chat creation
   const handleCreateChat = useCallback(async () => {
     const result = await createChat();
+    console.log("result", result);
     if (result?.conversationId) {
       navigate(`chats/${result.conversationId}`, { replace: true });
       if (isMobile && !isEmbedded) setIsOpen(false);
@@ -153,10 +158,22 @@ const ChatListComponent = React.forwardRef(({ isOpen, setIsOpen, isEmbedded = fa
 
   // Handle chat selection
   const handleSelect = useCallback((chatId) => {
+    console.log("chatId", chatId);
+    console.log("id", id);
+    if (id !== chatId) {
+      console.log("runing");
+
+      // Step A: Immediately clear the messages from the UI state
+      setMessages([]);
+
+      // Step B: Tell React Query to invalidate the query for the new chat.
+      // This marks it as stale and forces a refetch. The key is that the
+      // useQuery hook will now enter a 'loading' state without initial data.
+      queryClient.invalidateQueries({ queryKey: ['getMessages', chatId] });
+    }
     navigate(`chats/${chatId}`, { replace: true });
     if (isMobile && !isEmbedded) setIsOpen(false);
-  }, [isMobile, isEmbedded, setIsOpen, navigate]);
-
+  }, [id, isMobile, isEmbedded, setIsOpen, navigate, setMessages]);
   // Memoize new chat button
   const newChatButton = useMemo(() => (
     <button
@@ -192,14 +209,14 @@ const ChatListComponent = React.forwardRef(({ isOpen, setIsOpen, isEmbedded = fa
           <ChatListItem
             key={chat.ConversationsID}
             chat={chat}
-            isActive={conversationId === chat.ConversationsID}
+            isActive={id === chat.ConversationsID}
             onSelect={handleSelect}
             index={index}
           />
         ))}
       </AnimatePresence>
     );
-  }, [isLoading, isError, memoizedChatList, conversationId, handleSelect, handleCreateChat, refetch]);
+  }, [isLoading, isError, memoizedChatList, id, handleSelect, handleCreateChat, refetch]);
 
   // Memoize Content component
   const Content = useMemo(() => (

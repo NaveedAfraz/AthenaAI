@@ -78,7 +78,7 @@ export function useChatList() {
   });
 
   // Create new chat mutation with optimized settings
-  const { mutate: createChat, isPending: isCreating } = useMutation({
+  const { mutateAsync: createChat, isPending: isCreating } = useMutation({
     mutationFn: useCallback(async () => {
       if (!userId) throw new Error("User ID is required");
 
@@ -89,7 +89,8 @@ export function useChatList() {
           withCredentials: true,
           signal: new AbortController().signal,
         }
-      );
+      ); 
+      console.log("data", data);
       return data;
     }, [userId]),
 

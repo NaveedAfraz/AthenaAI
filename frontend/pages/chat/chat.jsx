@@ -8,8 +8,9 @@ import useChat from '@/hooks/useChat';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ChatLoading from '@/components/common/layouts/Home/chatLoading';
-import ChatBox from '../../components/chatbox';
-import ChatBoxInput from '../../components/chatboxInput';
+import ChatBox from '../../src/components/chatbox';
+import ChatBoxInput from '../../src/components/chatboxInput';
+import ChatInput from '@/components/input';
 
 const typingVariants = {
   initial: { opacity: 0, y: 10 },
@@ -54,7 +55,14 @@ function Chat() {
       </div>
 
       {/* Input Area */}
-      <ChatBoxInput />
+      <ChatBoxInput
+        img={img}
+        setImg={setImg}
+        setAnswer={setAnswer}
+        setMessages={setMessages}
+        messages={messages}
+      />
+      {/* <ChatInput /> */}
     </div >
   );
 }
