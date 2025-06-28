@@ -13,6 +13,7 @@ import Chat from "../pages/chat/chat";
 import Layout from "./components/common/layouts/Home/navFoot";
 import { useAuth } from "@clerk/clerk-react";
 import "./app.css"
+import { Analytics } from "@vercel/analytics/react";
 function App() {
   const { userId, isLoaded } = useAuth();
   const navigate = useNavigate();
@@ -23,18 +24,19 @@ function App() {
     }
   }, [userId, isLoaded]);
   return (
-
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route path="/home" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />}>
-          <Route path="chats/:id" element={<Chat />} />
+    <>
+      <Analytics />
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route path="/home" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />}>
+            <Route path="chats/:id" element={<Chat />} />
+          </Route>
         </Route>
-      </Route>
-    </Routes>
-
+      </Routes>
+    </>
   );
 }
 

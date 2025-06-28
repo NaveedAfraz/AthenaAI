@@ -8,7 +8,7 @@ function Register() {
     <>
       <Navbar />
       <div className="flex justify-center items-center h-screen">
-        <SignUp signInUrl="/login"/>
+        <SignUp signInUrl="/login" />
       </div>
       <Footer />
     </>
