@@ -12,7 +12,7 @@ const { requireAuth } = require("@clerk/express");
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://athena-ai-hljx.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
