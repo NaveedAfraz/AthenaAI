@@ -18,7 +18,7 @@ console.log(process.env.IMAGE_PRIVATE_KEY);
 router.get("/img-upload", (req, res) => {
   try {
     const result = imagekit.getAuthenticationParameters();
-    res.json(result); // Use res.json() for clearer intent
+    res.json(result); 
   } catch (error) {
     console.error('ImageKit Authentication Error:', error);
     res.status(500).json({ 

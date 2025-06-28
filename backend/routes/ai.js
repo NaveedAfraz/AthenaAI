@@ -3,7 +3,7 @@ const axios = require("axios");
 const router = express.Router();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Initialize the Google Generative AI
+ 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_PUBLIC_KEY);
 
 // Helper: download and convert image to base64
@@ -27,7 +27,7 @@ router.post("/generate-ai-response", async (req, res) => {
 
     const inputParts = [];
 
-    // Add chat history to inputParts
+ 
     const last10Messages = chatHistory.slice(-10);
     for (const chat of last10Messages) {
       if (chat.role === "user") {
@@ -38,7 +38,7 @@ router.post("/generate-ai-response", async (req, res) => {
     }
     console.log(inputParts, "inputParts");
 
-    // Handle image if provided
+    
     const imageUrl = typeof image === "string" ? image : image?.url || image?.path;
     console.log(imageUrl, "imageUrl");
 
@@ -47,13 +47,13 @@ router.post("/generate-ai-response", async (req, res) => {
       const base64Image = await getBase64FromUrl(fullUrl);
       inputParts.push({
         inlineData: {
-          mimeType: "image/png", // adjust if you use jpg
+          mimeType: "image/png",  
           data: base64Image,
         },
       });
     }
 
-    // Add the current message from user
+   
     inputParts.push({ text: `User: ${message}` });
 
     const result = await model.generateContent(inputParts);
