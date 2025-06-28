@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ChatList from '@/components/chatlist';
 import useDashboard from '@/hooks/useDashboard';
-import { UserButton } from '@clerk/clerk-react';
-
+import { useAuth, UserButton } from '@clerk/clerk-react';
+import { useNavigate, useLocation } from 'react-router';
 // Dashboard card items
 const cardItems = [
   {
@@ -67,6 +67,7 @@ function Dashboard() {
   console.log("Dashboard rendering");
   const {
     isChatOpen,
+
     isSidebarOpen,
     isLoading,
     error,
@@ -74,15 +75,15 @@ function Dashboard() {
     handleStartConversation,
     toggleSidebar,
   } = useDashboard();
-
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
+  const { userId, isLoaded } = useAuth();
   useEffect(() => {
-    console.log("mouning");
-    return () => {
-      console.log("unmouning");
+    if (!userId && location.pathname.includes('/dashboard')) {
+      navigate('/login');
     }
-  }, [])
+  }, [userId, navigate]);
   useEffect(() => {
 
     const handleResize = () => {

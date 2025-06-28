@@ -129,7 +129,7 @@ export default function ChatBoxInput({
             <div className="max-w-4xl mx-auto relative object-contain ">
                 {/* Image Preview */}
                 {img?.dbData.length > 0 && (
-                    <div className="relative inline-block mt-2 w-15 mb-2 h-20">
+                    <div className="relative inline-block mt-2 w-20 mb-2 h-20">
                         <img
                             src={`${import.meta.env.VITE_IMAGE_URL_ENDPOINT}/${img.dbData}`}
                             alt="Uploaded Preview"

@@ -17,11 +17,11 @@ export const useDashboard = () => {
   const [error, setError] = useState(null);
 
   // Check authentication
-  useEffect(() => {
-    if (!userId && isLoaded) {
-      navigate('/register');
-    }
-  }, [userId, isLoaded, navigate]);
+  // useEffect(() => {
+  //   if (!userId && isLoaded) {
+  //     navigate('/login');
+  //   }
+  // }, [userId, isLoaded, navigate]);
 
   // Update chat open state based on route
   useEffect(() => {

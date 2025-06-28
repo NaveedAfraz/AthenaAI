@@ -1,11 +1,17 @@
+import Footer from "@/components/common/layouts/footer";
+import Navbar from "@/components/common/layouts/navbar";
 import { SignIn } from "@clerk/clerk-react";
 import React from "react";
 
 function Login() {
   return (
-    <div className="flex justify-center items-center h-screen">
-      <SignIn signUpUrl="register"/>
-    </div>
+    <>
+      <Navbar />
+      <div className="flex justify-center items-center h-screen">
+        <SignIn signUpUrl="register" />
+      </div>
+      <Footer />
+    </>
   );
 }
 
