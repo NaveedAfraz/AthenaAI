@@ -9,7 +9,7 @@ import ChatList from '@/components/chatlist';
 import useDashboard from '@/hooks/useDashboard';
 import { useAuth, UserButton } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router';
-// Dashboard card items
+
 const cardItems = [
   {
     id: 1,
@@ -40,7 +40,7 @@ const cardItems = [
   },
 ];
 
-// Animation variants
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -100,11 +100,9 @@ function Dashboard() {
 
   return (
     <div className="flex h-screen w-full bg-gray-50 dark:bg-gray-900">
-      {/* Sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
           <>
-            {/* Mobile overlay */}
             {isMobile && (
               <motion.div
                 className="fixed inset-0 bg-black/50 z-20"
@@ -115,7 +113,6 @@ function Dashboard() {
               />
             )}
 
-            {/* Sidebar */}
             <motion.div
               className="fixed left-0 top-0 h-full w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-30 shadow-lg"
               initial={{ x: -320 }}
@@ -145,14 +142,12 @@ function Dashboard() {
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
       <div
         className={cn(
           "flex-1 flex flex-col transition-all duration-300",
           !isMobile && isSidebarOpen ? "ml-80" : "ml-0"
         )}
       >
-        {/* Header */}
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -180,11 +175,9 @@ function Dashboard() {
           </div>
         </header>
 
-        {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto">
           {!isChatOpen ? (
             <div className="max-w-6xl mx-auto p-6">
-              {/* Welcome Section */}
               <motion.div
                 initial="hidden"
                 animate="visible"
@@ -215,7 +208,6 @@ function Dashboard() {
                 </motion.p>
               </motion.div>
 
-              {/* Features Grid */}
               <motion.div
                 variants={containerVariants}
                 className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
@@ -256,7 +248,6 @@ function Dashboard() {
                 ))}
               </motion.div>
 
-              {/* CTA Section */}
               <motion.div
                 variants={itemVariants}
                 className="text-center"

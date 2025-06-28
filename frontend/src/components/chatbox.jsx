@@ -46,7 +46,7 @@ function ChatBox() {
     console.log("question", question);
     console.log("messages", messages);
     console.log("chatConversation", chatConversation);
-    //  alert(hasSubmittedOnce)
+
     useEffect(() => {
         if (!isLoading && !hasLoadedOnce.current) {
             hasLoadedOnce.current = true;
@@ -58,7 +58,6 @@ function ChatBox() {
     }, [id]);
     return (
         <div className="max-w-4xl mx-auto space-y-6">
-            {/* Empty state */}
             {messages?.length === 0 && !isLoading && !isError && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -77,11 +76,9 @@ function ChatBox() {
                 </motion.div>
             )}
 
-            {/* Messages */}
             <AnimatePresence initial={false}>
                 {messages?.map((message, index) => (
                     <React.Fragment key={`message-${message.id || index}`}>
-                        {/* User Message */}
                         <motion.div
                             variants={messageVariants}
                             initial="hidden"
@@ -113,7 +110,6 @@ function ChatBox() {
                             </div>
                         </motion.div>
 
-                        {/* AI Response */}
                         <motion.div
                             variants={messageVariants}
                             initial="hidden"
@@ -135,7 +131,6 @@ function ChatBox() {
                     </React.Fragment>
                 ))}
 
-                {/* Current question being asked */}
                 {showQuestion && (
                     <motion.div
                         variants={messageVariants}
@@ -149,9 +144,8 @@ function ChatBox() {
                                     <div className="rounded-2xl overflow-hidden border-2 border-blue-200 dark:border-blue-800 shadow-lg">
                                         <IKImage
                                             urlEndpoint={import.meta.env.VITE_IMAGE_URL_ENDPOINT}
-                                            path={img.dbData.filePath} // Use the specific property that holds the path
+                                            path={img.dbData.filePath}  
                                             transformation={[{ height: 80, width: 80 }]}
-                                        //...
                                         />
                                     </div>
                                 )}

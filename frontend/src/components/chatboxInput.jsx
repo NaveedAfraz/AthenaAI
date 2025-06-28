@@ -1,12 +1,8 @@
 import React, { useContext } from 'react';
-import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Loader2, Send, Paperclip, X } from 'lucide-react';
-import { IKImage } from 'imagekitio-react';
+import { Loader2, Send } from 'lucide-react';
 import ImgUpload from "./ImgUpload";
-
-// --- Imports for logic ---
 import axios from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router";
@@ -54,38 +50,28 @@ export default function ChatBoxInput({
         },
     });
 
-    // In ChatBoxInput.jsx
-
     const handleSendMessage = async () => {
-        // Nothing to do if no text and no image
         if (!question.trim() && !(img?.aiData && Object.keys(img.aiData).length)) return;
 
         try {
             setShowQuestion(true);
-            setAnswer(""); // Clear any previous answer
+            setAnswer(""); 
 
-            // If there's an image, we'll need to handle it differently
-            // For now, we'll just send the text message
             if (question.trim()) {
-                // Format chat history for context
                 const chatHistory = messages.map(msg => ({
                     sender: 'user',
                     message: msg.question,
                 }));
 
-                // Add the current message to the history
-                chatHistory.push({
+                chatHistory.push({  
                     sender: 'user',
                     message: question,
                 });
                 console.log(img, "img.aiData");
-                // Get AI response
                 const aiResponse = await sendMessageToAI(question, chatHistory, img?.dbData);
 
-                // Update the answer in the UI
                 setAnswer(aiResponse);
 
-                // Update messages with the full Q&A
                 const newMessage = {
                     question,
                     answer: aiResponse,
@@ -94,7 +80,7 @@ export default function ChatBoxInput({
 
                 setMessages(prev => [...prev, newMessage]);
 
-                // Save to backend
+        
                 sendMessageMutation({
                     question,
                     answer: aiResponse,
@@ -102,19 +88,19 @@ export default function ChatBoxInput({
                     image: img?.dbData,
                 });
 
-                // Reset inputs
+                
                 setQuestion("");
                 setImg({ isLoading: false, error: null, dbData: {}, aiData: {} });
                 setShowQuestion(false);
             }
         } catch (err) {
             console.error("Error sending message:", err);
-            // Handle error state if needed
+            
         }
     };
 
 
-    // ... (handleKeyDown and the return JSX remain the same) ...
+    
     const handleKeyDown = e => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -125,9 +111,9 @@ export default function ChatBoxInput({
 
     return (
         <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 p-4">
-            {/* ... your existing JSX ... */}
+        
             <div className="max-w-4xl mx-auto relative object-contain ">
-                {/* Image Preview */}
+            
                 {img?.dbData.length > 0 && (
                     <div className="relative inline-block mt-2 w-20 mb-2 h-20">
                         <img
