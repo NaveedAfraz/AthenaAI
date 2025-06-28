@@ -134,8 +134,8 @@ const ChatListComponent = React.forwardRef(({ isOpen, setIsOpen, isEmbedded = fa
   } = useChatList();
 
   // Memoize chatList to prevent unnecessary re-renders
-  const memoizedChatList = useMemo(() => chatList, [chatList]);
-
+  const memoizedChatList = useMemo(() => chatList, [chatList]).sort((a, b) => b.ConversationsID - a.ConversationsID);
+  console.log(memoizedChatList, "chatList");
   // Handle responsive design
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);

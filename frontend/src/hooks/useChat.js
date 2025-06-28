@@ -89,9 +89,10 @@ export const useChat = () => {
   }, []);
 
   // Function to send message to AI and get response
-  const sendMessageToAI = async (message, chatHistory = []) => {
+  const sendMessageToAI = async (message, chatHistory = [] , image) => {
     if (!message.trim()) return;
-    
+    console.log(message, "message");
+   // console.log(chatHistory, "chatHistory");
     setIsLoadingAI(true);
     setAiError(null);
     
@@ -101,7 +102,8 @@ export const useChat = () => {
         chatHistory: chatHistory.map(msg => ({
           role: msg.sender === 'user' ? 'user' : 'assistant',
           content: msg.message
-        }))
+        })),
+        image
       });
       
       if (response.data.success) {

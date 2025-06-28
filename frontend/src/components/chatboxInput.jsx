@@ -79,9 +79,9 @@ export default function ChatBoxInput({
                     sender: 'user',
                     message: question,
                 });
-
+console.log(img, "img.aiData");
                 // Get AI response
-                const aiResponse = await sendMessageToAI(question, chatHistory);
+                const aiResponse = await sendMessageToAI(question, chatHistory, img?.dbData);
                 
                 // Update the answer in the UI
                 setAnswer(aiResponse);
