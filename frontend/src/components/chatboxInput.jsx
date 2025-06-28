@@ -36,7 +36,6 @@ export default function ChatBoxInput({
     const { sendMessageToAI } = useChat();
 
     const { mutate: sendMessageMutation, isLoading } = useMutation({
-        // ... (mutationFn, onSuccess, onError remain the same) ...
         mutationFn: async ({ answer, question, conversationId, image }) => {
             try {
                 const response = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3006"}/api/send-message`, { question, answer, conversationId, image }, { withCredentials: true });
@@ -79,10 +78,10 @@ export default function ChatBoxInput({
                     sender: 'user',
                     message: question,
                 });
-console.log(img, "img.aiData");
+                console.log(img, "img.aiData");
                 // Get AI response
                 const aiResponse = await sendMessageToAI(question, chatHistory, img?.dbData);
-                
+
                 // Update the answer in the UI
                 setAnswer(aiResponse);
 
@@ -121,13 +120,32 @@ console.log(img, "img.aiData");
             e.preventDefault();
             handleSendMessage();
         }
-    };
+    }; 
+    console.log(img, "img.aiData");
 
     return (
         <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 p-4">
             {/* ... your existing JSX ... */}
-            <div className="max-w-4xl mx-auto relative">
+            <div className="max-w-4xl mx-auto relative object-contain ">
                 {/* Image Preview */}
+                {img?.dbData.length > 0 && (
+                    <div className="relative inline-block mt-2 w-15 mb-2 h-20">
+                        <img
+                            src={`${import.meta.env.VITE_IMAGE_URL_ENDPOINT}/${img.dbData}`}
+                            alt="Uploaded Preview"
+                            className="max-h-40 rounded-md shadow-md w-full h-full"
+                        />
+                        <button
+                            onClick={() => setImg({ isLoading: false, error: null, dbData: null, aiData: null })}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                            aria-label="Remove image"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                )}
                 <div className="flex items-end space-x-2">
                     <ImgUpload setImg={setImg} />
                     <div className="flex-1 relative">

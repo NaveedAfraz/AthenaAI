@@ -6,13 +6,12 @@ const port = process.env.PORT || 3006;
 const db = require("./db");
 const path = require("path");
 app.use(express.json());
- 
 
 const { requireAuth } = require("@clerk/express");
 
 app.use(
   cors({
-    origin: "https://athena-ai-hljx.vercel.app",
+    origin: ["https://athena-ai-hljx.vercel.app", "http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],

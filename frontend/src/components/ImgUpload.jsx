@@ -106,6 +106,7 @@ function ImgUpload({ setImg }) {
       publicKey={publicKey}
       authenticator={authenticator}
     >
+      
       <div className="relative inline-block">
         <IKUpload
           fileName={`upload-${Date.now()}.png`}
