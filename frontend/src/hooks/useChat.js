@@ -34,7 +34,12 @@ export const useChat = () => {
     queryFn: async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3006/api/get-conversation/${chatID}`
+          `${
+            import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3006"
+          }/api/get-conversation/${chatID}`,
+          {
+            withCredentials: true,
+          }
         );
         return response.data;
       } catch (error) {
@@ -89,31 +94,38 @@ export const useChat = () => {
   }, []);
 
   // Function to send message to AI and get response
-  const sendMessageToAI = async (message, chatHistory = [] , image) => {
+  const sendMessageToAI = async (message, chatHistory = [], image) => {
     if (!message.trim()) return;
     console.log(message, "message");
-   // console.log(chatHistory, "chatHistory");
+    // console.log(chatHistory, "chatHistory");
     setIsLoadingAI(true);
     setAiError(null);
-    
+
     try {
-      const response = await axios.post('http://localhost:3006/api/generate-ai-response', {
-        message,
-        chatHistory: chatHistory.map(msg => ({
-          role: msg.sender === 'user' ? 'user' : 'assistant',
-          content: msg.message
-        })),
-        image
-      });
-      
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3006"}/api/generate-ai-response`,
+        {
+          message,
+          chatHistory: chatHistory.map((msg) => ({
+            role: msg.sender === "user" ? "user" : "assistant",
+            content: msg.message,
+          })),
+          image,
+        }
+      );
+
       if (response.data.success) {
         return response.data.response;
       } else {
-        throw new Error(response.data.error || 'Failed to get AI response');
+        throw new Error(response.data.error || "Failed to get AI response");
       }
     } catch (error) {
-      console.error('Error sending message to AI:', error);
-      setAiError(error.response?.data?.error || error.message || 'Failed to get AI response');
+      console.error("Error sending message to AI:", error);
+      setAiError(
+        error.response?.data?.error ||
+          error.message ||
+          "Failed to get AI response"
+      );
       throw error;
     } finally {
       setIsLoadingAI(false);

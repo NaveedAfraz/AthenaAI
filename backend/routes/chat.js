@@ -3,8 +3,7 @@ const router = express.Router();
 //const { GoogleGenerativeAI } = require("google-generative-ai");
 
 const pool = require("../db");
-// const genAI = new GoogleGenerativeAI(process.env.GEMINI_PUBLIC_KEY);
-// const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+ 
 router.post("/add-chat", async (req, res) => {
   const { userId } = req.body;
   if (!userId) {

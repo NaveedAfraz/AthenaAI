@@ -4,7 +4,9 @@ import React, { useRef, useState } from "react";
 
 const authenticator = async () => {
   try {
-    const response = await fetch("http://localhost:3006/api/img-upload");
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3006"}/api/img-upload`
+    );
     if (!response.ok) {
       throw new Error(`Upload authentication failed: ${response.status}`);
     }

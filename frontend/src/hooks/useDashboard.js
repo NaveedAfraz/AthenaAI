@@ -35,7 +35,7 @@ export const useDashboard = () => {
         setIsLoading(true);
         setError(null);
         const res = await axios.post(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3006'}/api/add-chat`,
+          `${import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3006'}/api/add-chat`,
           { userId },
           { withCredentials: true }
         );

@@ -11,7 +11,7 @@ const queryKeys = {
 
 // Memoize the API base URL to prevent recreating the string
 const getApiUrl = () =>
-  `${import.meta.env.VITE_API_URL || "http://localhost:3006"}`;
+  `${import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3006"}`;
 
 export function useChatList() {
   const { userId } = useAuth();

@@ -39,7 +39,7 @@ export default function ChatBoxInput({
         // ... (mutationFn, onSuccess, onError remain the same) ...
         mutationFn: async ({ answer, question, conversationId, image }) => {
             try {
-                const response = await axios.post("http://localhost:3006/api/send-message", { question, answer, conversationId, image }, { withCredentials: true });
+                const response = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3006"}/api/send-message`, { question, answer, conversationId, image }, { withCredentials: true });
                 return response.data;
             } catch (error) {
                 console.error(error);
