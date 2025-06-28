@@ -8,11 +8,11 @@ import ImgUpload from "./ImgUpload";
 
 // --- Imports for logic ---
 import axios from "axios";
-import model from "@/lib/GEMINI";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router";
 import { useAuth } from "@clerk/clerk-react";
 import { ChatContext } from "@/GlobalContext";
+import { useChat } from "@/hooks/useChat";
 
 export default function ChatBoxInput({
     img,
@@ -33,6 +33,7 @@ export default function ChatBoxInput({
     const chatID = sliced[3];
     const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const { sendMessageToAI } = useChat();
 
     const { mutate: sendMessageMutation, isLoading } = useMutation({
         // ... (mutationFn, onSuccess, onError remain the same) ...
@@ -57,54 +58,59 @@ export default function ChatBoxInput({
     // In ChatBoxInput.jsx
 
     const handleSendMessage = async () => {
-        // 1) nothing to do if no text _and_ no image
+        // Nothing to do if no text and no image
         if (!question.trim() && !(img?.aiData && Object.keys(img.aiData).length)) return;
-
-        const chat = model.startChat({
-            generationConfig: {},
-        });
 
         try {
             setShowQuestion(true);
+            setAnswer(""); // Clear any previous answer
 
-            // 5) choose prompt payload (image+text or just text)
-            const prompt = (img?.aiData && Object.keys(img.aiData).length)
-                ? [img.aiData, question]
-                : [question];
+            // If there's an image, we'll need to handle it differently
+            // For now, we'll just send the text message
+            if (question.trim()) {
+                // Format chat history for context
+                const chatHistory = messages.map(msg => ({
+                    sender: 'user',
+                    message: msg.question,
+                }));
 
-            // 6) kick off streaming
-            const stream = await chat.sendMessageStream(prompt);
+                // Add the current message to the history
+                chatHistory.push({
+                    sender: 'user',
+                    message: question,
+                });
 
-            // 7) accumulate text locally—don't touch messages yet
-            let accumulated = "";
-            for await (const chunk of stream.stream) {
-                const txt = chunk.text();
-                accumulated += txt;
-                setAnswer(prev => prev + txt);
+                // Get AI response
+                const aiResponse = await sendMessageToAI(question, chatHistory);
+                
+                // Update the answer in the UI
+                setAnswer(aiResponse);
+
+                // Update messages with the full Q&A
+                const newMessage = {
+                    question,
+                    answer: aiResponse,
+                    timestamp: new Date().toISOString()
+                };
+
+                setMessages(prev => [...prev, newMessage]);
+
+                // Save to backend
+                sendMessageMutation({
+                    question,
+                    answer: aiResponse,
+                    conversationId: chatID,
+                    image: img?.dbData,
+                });
+
+                // Reset inputs
+                setQuestion("");
+                setImg({ isLoading: false, error: null, dbData: {}, aiData: {} });
+                setShowQuestion(false);
             }
-
-            // 8) once complete, now _append_ your new turn with full Q and A
-            setMessages(prev => [
-                ...prev,
-                { question, answer: accumulated }
-            ]);
-
-            // 9) persist to your backend
-            sendMessageMutation({
-                question,
-                answer: accumulated,
-                conversationId: chatID,
-                image: img?.dbData,
-            });
-
-            // 10) reset inputs
-            setAnswer("");
-            setQuestion("");
-            setImg({ isLoading: false, error: null, dbData: {}, aiData: {} });
-            setShowQuestion(false);
-
         } catch (err) {
             console.error("Error sending message:", err);
+            // Handle error state if needed
         }
     };
 

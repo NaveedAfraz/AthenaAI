@@ -6,6 +6,8 @@ import { useLocation } from "react-router";
 export const useChat = () => {
   const [messages, setMessages] = useState([]);
   const [answer, setAnswer] = useState("");
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [aiError, setAiError] = useState(null);
   const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
   const [img, setImg] = useState({
     isLoading: false,
@@ -86,6 +88,36 @@ export const useChat = () => {
     });
   }, []);
 
+  // Function to send message to AI and get response
+  const sendMessageToAI = async (message, chatHistory = []) => {
+    if (!message.trim()) return;
+    
+    setIsLoadingAI(true);
+    setAiError(null);
+    
+    try {
+      const response = await axios.post('http://localhost:3006/api/generate-ai-response', {
+        message,
+        chatHistory: chatHistory.map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.message
+        }))
+      });
+      
+      if (response.data.success) {
+        return response.data.response;
+      } else {
+        throw new Error(response.data.error || 'Failed to get AI response');
+      }
+    } catch (error) {
+      console.error('Error sending message to AI:', error);
+      setAiError(error.response?.data?.error || error.message || 'Failed to get AI response');
+      throw error;
+    } finally {
+      setIsLoadingAI(false);
+    }
+  };
+
   return {
     messages,
     setMessages,
@@ -95,8 +127,9 @@ export const useChat = () => {
     setImg,
     endMessageRef,
     chatID,
-    isError,
-    isLoading,
+    isError: isError || !!aiError,
+    error: error || aiError,
+    isLoading: isLoading || isLoadingAI,
     isFetching,
     error,
     hasSubmittedOnce,
@@ -104,6 +137,7 @@ export const useChat = () => {
     chatConversation,
     refreshConversation,
     resetChat,
+    sendMessageToAI,
   };
 };
 

@@ -1,12 +1,12 @@
 const express = require("express");
-
+require("dotenv").config();
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 3006;
 const db = require("./db");
 const path = require("path");
 app.use(express.json());
-require("dotenv").config();
+ 
 
 const { requireAuth } = require("@clerk/express");
 
@@ -21,11 +21,13 @@ app.use(
 
 const imgUploadRouter = require("./routes/imgupload");
 const chatRouter = require("./routes/chat");
+const aiRouter = require("./routes/ai");
 
 const { config } = require("process");
 
 app.use("/api", imgUploadRouter);
 app.use("/api", chatRouter);
+app.use("/api", aiRouter);
 
 app.use(express.static(path.join(__dirname, "../client/dist")));
 
