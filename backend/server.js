@@ -23,7 +23,7 @@ const chatRouter = require("./routes/chat");
 const aiRouter = require("./routes/ai");
 
 const { config } = require("process");
-apu.use("/api/health", (req, res) => {
+app.use("/api/health", (req, res) => {
   return res.json({ message: "Server is running" });
 });
 app.use("/api", imgUploadRouter);
